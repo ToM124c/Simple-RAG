@@ -130,7 +130,7 @@ A: 检查API密钥是否正确，以及网络连接是否正常
 
 ## 🔗 相关链接
 
-- [项目文档](readme.md)
+- [参考项目](https://github.com/weiwill88/Local_Pdf_Chat_RAG)
 - [项目结构](PROJECT_STRUCTURE.md)
 - [API文档](http://localhost:17995/docs)（启动API服务器后）
 - [硅基流动官网](https://www.siliconflow.com)

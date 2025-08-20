@@ -1,0 +1,23 @@
+# 核心依赖
+gradio>=3.50.0
+pdfminer.six>=20221105
+faiss-cpu>=1.7.4
+langchain-text-splitters>=0.0.1
+python-dotenv>=1.0.0
+requests>=2.31.0
+markdown>=3.4.3
+
+# API服务依赖
+fastapi>=0.104.1
+uvicorn>=0.23.2
+python-multipart>=0.0.6
+
+# 网络和工具依赖
+urllib3>=1.26.16
+jieba>=0.42.1
+numpy>=1.26.1
+rank-bm25>=0.2.2
+
+# 可选依赖（用于高级功能）
+# pydantic>=2.0.0  # 已包含在fastapi中
+# typing-extensions>=4.0.0  # Python 3.8+已内置

@@ -5,7 +5,7 @@
 ### 1. 克隆项目
 ```bash
 git clone <项目地址>
-cd Simple-RAG
+cd Local_Pdf_Chat_RAG-main
 ```
 
 ### 2. 创建虚拟环境
