@@ -75,9 +75,9 @@ class PDFParser:
         from docling.datamodel.base_models import InputFormat
         from docling.pipeline.standard_pdf_pipeline import StandardPdfPipeline
 
-        pipeline_options = PdfPipelineOptions()
+        pipeline_options = PdfPipelineOptions(artifacts_path=Path("./docling_models"))
         pipeline_options.do_ocr = True
-        ocr_options = EasyOcrOptions(lang=['en'], force_full_page_ocr=False)
+        ocr_options = EasyOcrOptions(lang=['ch_sim'], force_full_page_ocr=False, download_enabled=False, model_storage_directory=str(Path("./docling_models/EasyOcr")))
         pipeline_options.ocr_options = ocr_options
         pipeline_options.do_table_structure = True
         pipeline_options.table_structure_options.do_cell_matching = True
@@ -260,7 +260,7 @@ class JsonReportProcessor:
         assembled_report = {}
         assembled_report['metainfo'] = self.assemble_metainfo(data)
         assembled_report['content'] = self.assemble_content(data)
-        assembled_report['tables'] = self.assemble_tables(conv_result.document.tables, data)
+        assembled_report['tables'] = self.assemble_tables(conv_result.document.tables, data, conv_result)
         assembled_report['pictures'] = self.assemble_pictures(data)
         self.debug_data(data)
         return assembled_report
@@ -434,12 +434,12 @@ class JsonReportProcessor:
         sorted_pages = [pages[page_num] for page_num in sorted(pages.keys())]
         return sorted_pages
 
-    def assemble_tables(self, tables, data):
+    def assemble_tables(self, tables, data, conv_result):
         assembled_tables = []
         for i, table in enumerate(tables):
             table_json_obj = table.model_dump()
             table_md = self._table_to_md(table_json_obj)
-            table_html = table.export_to_html()
+            table_html = table.export_to_html(doc=conv_result.document)
 
             table_data = data['tables'][i]
             table_page_num = table_data['prov'][0]['page_no']
@@ -997,121 +997,3 @@ class PageTextPreparation:
             report_name = report_data['metainfo']['sha1_name']
             with open(output_dir / f"{report_name}.md", "w", encoding="utf-8") as f:
                 f.write(document_text)
-
-if __name__ == "__main__":
-    # 这是一个简单的测试用例。
-    # 为了运行这些测试，您需要：
-    # 1. 安装 docling 库及其所有依赖项。
-    # 2. 准备一个 PDF 文件，例如 'test_data/sample.pdf'
-    # 3. 准备一个 CSV 元数据文件，例如 'test_data/sample_subset.csv'，其中包含 PDF 的 sha1 名称和公司名称。
-    #    CSV 文件示例:
-    #    sha1,company_name
-    #    sample_pdf_sha1,"Sample Company"
-    #
-    # 为了简化，这里我们仅展示如何实例化类并调用它们的方法。
-    # 实际运行需要完整的 docling 环境和真实的 PDF/CSV 文件。
-
-    print("开始在 pdf_markdown.py 中运行测试示例...")
-
-    # 设置输出目录
-    test_output_dir = Path("./test_output/parsed_pdfs")
-    test_markdown_output_dir = Path("./test_output/markdown_reports")
-    test_debug_data_dir = Path("./test_output/debug_data")
-    test_data_dir = Path("./test_data")
-
-    # 确保测试数据目录存在，您可以将 PDF 和 CSV 文件放在这里
-    test_data_dir.mkdir(parents=True, exist_ok=True)
-
-    # 模拟 PDF 文件路径和 CSV 元数据文件路径
-    # 请替换为您的实际文件路径
-    sample_pdf_path = test_data_dir / "sample.pdf"
-    sample_csv_path = test_data_dir / "sample_subset.csv"
-    
-    # 检查示例文件是否存在
-    if not sample_pdf_path.exists():
-        print(f"警告：找不到示例 PDF 文件：{sample_pdf_path}。请创建一个虚拟 PDF 文件或更新路径。")
-        # 可以创建虚拟文件，但由于 docling 依赖，实际解析仍会失败
-        # with open(sample_pdf_path, 'w') as f:
-        #     f.write("%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R>>endobj xf:0\n")
-    if not sample_csv_path.exists():
-        print(f"警告：找不到示例 CSV 文件：{sample_csv_path}。请创建一个虚拟 CSV 文件或更新路径。")
-        with open(sample_csv_path, 'w') as f:
-            f.write("sha1,company_name\n")
-            f.write('sample_pdf_sha1,"Sample Company"\n') # 确保这个 sha1 与您的 PDF 文件匹配
-
-    try:
-        # 1. 测试 PDFParser
-        print("\n--- 测试 PDFParser ---")
-        pdf_parser = PDFParser(
-            output_dir=test_output_dir,
-            csv_metadata_path=sample_csv_path,
-            debug_data_path=test_debug_data_dir
-        )
-        print(f"PDFParser 实例化成功，输出目录：{test_output_dir}")
-        print(f"元数据查找表：{pdf_parser.metadata_lookup}")
-
-        # 如果有实际的 PDF 文件，可以尝试解析
-        if sample_pdf_path.exists():
-            print(f"尝试解析 {sample_pdf_path}...")
-            # 注意：实际解析需要 docling 依赖，这里可能仍然会失败
-            # pdf_parser.parse_and_export(input_doc_paths=[sample_pdf_path])
-            print("PDFParser.parse_and_export 示例调用完成。")
-        else:
-            print("跳过 PDF 解析，因为示例 PDF 文件不存在。")
-
-        # 2. 测试 PageTextPreparation
-        print("\n--- 测试 PageTextPreparation ---")
-        page_text_prep = PageTextPreparation(use_serialized_tables=False)
-        print("PageTextPreparation 实例化成功。")
-
-        # 模拟一个解析后的 JSON 报告文件（通常由 PDFParser 生成）
-        # 为了测试 PageTextPreparation，我们需要一个模拟的 JSON 文件
-        mock_report_data = {
-            "metainfo": {"sha1_name": "sample_pdf_sha1", "pages_amount": 1, "text_blocks_amount": 1, "tables_amount": 0, "pictures_amount": 0, "equations_amount": 0, "footnotes_amount": 0, "company_name": "Sample Company"},
-            "content": [
-                {
-                    "page": 1,
-                    "content": [
-                        {"text": "这是一个示例文本。", "type": "paragraph"},
-                        {"text": "列表项1。", "type": "list_item"},
-                        {"text": "列表项2。", "type": "list_item"},
-                        {"text": "一个表格：", "type": "paragraph"},
-                        {"type": "table", "table_id": 0} # 模拟表格引用
-                    ]
-                }
-            ],
-            "tables": [
-                {
-                    "table_id": 0,
-                    "page": 1,
-                    "bbox": [0,0,0,0],
-                    "#-rows": 2,
-                    "#-cols": 2,
-                    "markdown": "| Header1 | Header2 |\n|---|---|\n| Data1 | Data2 |",
-                    "html": "<table><tr><th>Header1</th><th>Header2</th></tr><tr><td>Data1</td><td>Data2</td></tr></table>",
-                    "json": {"data": {"grid": [[{"text": "Header1"}, {"text": "Header2"}], [{"text": "Data1"}, {"text": "Data2"}]]}}
-                }
-            ]
-        }
-        
-        # 将模拟报告保存到文件，以便 PageTextPreparation 读取
-        mock_report_path = test_output_dir / "sample_pdf_sha1.json"
-        test_output_dir.mkdir(parents=True, exist_ok=True)
-        with open(mock_report_path, 'w', encoding='utf-8') as f:
-            json.dump(mock_report_data, f, indent=2, ensure_ascii=False)
-        print(f"模拟报告已保存到：{mock_report_path}")
-
-        # 处理模拟报告并导出为 Markdown
-        print(f"尝试将模拟报告处理并导出到 {test_markdown_output_dir}...")
-        page_text_prep.export_to_markdown(
-            reports_dir=test_output_dir,
-            output_dir=test_markdown_output_dir
-        )
-        print("PageTextPreparation.export_to_markdown 示例调用完成。")
-        print(f"生成的 Markdown 文件应该在：{test_markdown_output_dir}")
-
-
-    except Exception as e:
-        print(f"测试过程中发生错误：{e}")
-
-    print("\n测试示例运行结束。")

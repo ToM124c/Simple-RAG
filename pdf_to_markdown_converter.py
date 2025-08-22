@@ -40,8 +40,8 @@ def convert_pdf_to_markdown(
     pdf_parser = PDFParser(
         output_dir=parsed_reports_temp_dir,
         csv_metadata_path=None,  # 不使用元数据
-        debug_data_path=debug_data_dir # 中间调试数据
     )
+    pdf_parser.debug_data_path = debug_data_dir # 中间调试数据
 
     try:
         pdf_parser.parse_and_export(input_doc_paths=[input_pdf_path])
@@ -97,8 +97,8 @@ if __name__ == "__main__":
     # 假设您的项目根目录是 E:\实习\项目\Simple-RAG
     # 并且您的 PDF 文件在 E:\实习\项目\Simple-RAG\data\test_set\pdf_reports\ 目录下
     # 示例 PDF 文件名
-    pdf_filename = "dummy_report.pdf" # 请替换为实际的 PDF 文件名
-    input_pdf = Path("data") / "test_set" / "pdf_reports" / pdf_filename
+    # pdf_filename = "test_file.pdf" # 请替换为实际的 PDF 文件名
+    input_pdf = Path("./test_file.pdf") 
 
     # 转换后的 Markdown 文件将存储在此目录中
     output_markdown_dir = Path("./converted_markdowns")
