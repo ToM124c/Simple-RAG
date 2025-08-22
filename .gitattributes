@@ -1,0 +1,2 @@
+docling_models/**/*.pth filter=lfs diff=lfs merge=lfs -text
+docling_models/**/*.safetensors filter=lfs diff=lfs merge=lfs -text
